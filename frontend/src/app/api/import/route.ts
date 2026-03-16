@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Papa from 'papaparse';
+import { requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,9 @@ interface CsvRow {
 const VALID_STATUSES = new Set(['OWNED', 'LOST', 'STOLEN', 'DAMAGED', 'DESTROYED']);
 
 export async function POST(request: Request) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { estimatePrice } from '@/lib/price-lookup';
+import { requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,9 @@ export async function POST(
   _: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const item = await prisma.item.findUnique({
     where: { id },

@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const collection = await prisma.collection.findUnique({
     where: { id },
@@ -20,6 +24,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   await prisma.collection.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });

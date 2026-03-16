@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ItemStatus } from '@prisma/client';
+import { requireAuth, requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const item = await prisma.item.findUnique({
     where: { id },
@@ -18,6 +22,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   const body = await request.json();
   const allowed = [
@@ -41,6 +48,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const { id } = await params;
   await prisma.item.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });

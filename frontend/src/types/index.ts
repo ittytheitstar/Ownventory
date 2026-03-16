@@ -40,6 +40,49 @@ export interface Item {
   updatedAt: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'OWNER' | 'VIEWER';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StocktakeEntry {
+  id: string;
+  itemId?: string | null;
+  item?: Item | null;
+  label: string;
+  scanValue?: string | null;
+  expected: boolean;
+  scannedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StocktakeSession {
+  id: string;
+  name: string;
+  catalogueId?: string | null;
+  collectionId?: string | null;
+  catalogue?: Catalogue | null;
+  collection?: (Collection & { catalogue?: Catalogue }) | null;
+  createdBy: User;
+  items: StocktakeEntry[];
+  notes?: string | null;
+  startedAt: string;
+  endedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  summary: {
+    expected: number;
+    confirmed: number;
+    missing: number;
+    new: number;
+  };
+}
+
 export const STATUS_LABELS: Record<ItemStatus, string> = {
   OWNED: 'Owned',
   LOST: 'Lost',
