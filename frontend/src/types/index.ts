@@ -34,6 +34,8 @@ export interface Item {
   year?: number;
   metadata?: Record<string, unknown>;
   notes?: string;
+  estimatedValue?: string | null;
+  valueFetchedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

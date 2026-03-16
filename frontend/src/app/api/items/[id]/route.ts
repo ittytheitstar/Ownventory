@@ -23,6 +23,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const allowed = [
     'name','description','status','notes','imageUrl','manufacturer',
     'author','publisher','year','metadata','barcode','isbn',
+    'estimatedValue','valueFetchedAt',
   ] as const;
   const data: Partial<Record<(typeof allowed)[number], unknown>> = {};
   for (const key of allowed) {
