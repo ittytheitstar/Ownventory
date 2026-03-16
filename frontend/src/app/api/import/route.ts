@@ -99,7 +99,8 @@ export async function POST(request: Request) {
         });
         created.push(item.id);
       } catch (err) {
-        errors.push(`Row ${i + 2}: ${String(err)}`);
+        const msg = err instanceof Error ? err.message : 'Failed to create item';
+        errors.push(`Row ${i + 2}: ${msg}`);
       }
     }
 

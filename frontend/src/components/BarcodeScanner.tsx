@@ -10,7 +10,7 @@ interface Props {
 
 export function BarcodeScanner({ onScan, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scannerRef = useRef<{ clear: () => Promise<void> } | null>(null);
+  const scannerRef = useRef<{ clear: () => void } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -70,7 +70,7 @@ export function BarcodeScanner({ onScan, onClose }: Props) {
 
     return () => {
       cancelled = true;
-      scannerRef.current?.clear().catch(() => {});
+      try { scannerRef.current?.clear(); } catch { /* ignore */ }
     };
   }, [onScan]);
 

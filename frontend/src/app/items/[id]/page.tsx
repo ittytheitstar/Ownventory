@@ -72,7 +72,7 @@ export default function ItemDetailPage() {
         const updated = await res.json();
         setItem(updated);
       } else {
-        alert('Price estimation unavailable. Set EBAY_APP_ID for richer data.');
+        alert('Price estimation is currently unavailable. You can set EBAY_APP_ID for richer data, or try again later.');
       }
     } catch {
       alert('Failed to fetch price.');
@@ -101,7 +101,7 @@ export default function ItemDetailPage() {
       });
       if (patchRes.ok) setItem(await patchRes.json());
     } catch {
-      alert('Failed to upload image.');
+      alert('Unable to upload image. Please check your file and try again.');
     } finally {
       setUploadingImage(false);
     }
