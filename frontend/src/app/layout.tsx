@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Navigation } from '@/components/Navigation';
 import { PwaRegistration } from '@/components/PwaRegistration';
@@ -7,12 +7,15 @@ export const metadata: Metadata = {
   title: 'Ownventory',
   description: 'Track and manage your home inventory',
   manifest: '/manifest.webmanifest',
-  themeColor: '#4f46e5',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Ownventory',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#4f46e5',
 };
 
 export default function RootLayout({

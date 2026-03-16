@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@/types';
 
@@ -24,7 +24,7 @@ export default function AccountPage() {
     role: 'VIEWER',
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const meResponse = await fetch('/api/auth/me');
@@ -47,11 +47,11 @@ export default function AccountPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     load().catch(() => setError('Unable to load account details.'));
-  }, []);
+  }, [load]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });

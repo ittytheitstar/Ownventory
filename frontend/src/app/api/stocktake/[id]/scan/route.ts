@@ -35,8 +35,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const normalized = value.toLowerCase();
   const existingExpected = session.items.find((entry) => entry.expected && entry.item && (
-    entry.item.id === value
-    || entry.item.barcode === value
+    entry.item.id.toLowerCase() === normalized
+    || entry.item.barcode?.toLowerCase() === normalized
     || entry.item.name.trim().toLowerCase() === normalized
   ));
 

@@ -3,7 +3,15 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 const SESSION_COOKIE = 'ownventory_session';
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+
+function getSessionTtlSeconds() {
+  const configured = Number(process.env.AUTH_SESSION_TTL_SECONDS);
+  if (Number.isFinite(configured) && configured > 0) {
+    return configured;
+  }
+
+  return 60 * 60 * 24 * 30;
+}
 
 type SessionPayload = {
   userId: string;
@@ -12,7 +20,14 @@ type SessionPayload = {
 };
 
 function getAuthSecret() {
-  return process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'development-auth-secret';
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (secret) return secret;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_SECRET or NEXTAUTH_SECRET must be configured in production.');
+  }
+
+  return 'development-auth-secret';
 }
 
 function signValue(value: string) {
@@ -87,12 +102,13 @@ export async function getSessionUser() {
 
 export async function setSessionCookie(user: { id: string; role: 'OWNER' | 'VIEWER' }) {
   const cookieStore = await cookies();
-  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const sessionTtlSeconds = getSessionTtlSeconds();
+  const exp = Math.floor(Date.now() / 1000) + sessionTtlSeconds;
   cookieStore.set(SESSION_COOKIE, encodeSession({ userId: user.id, role: user.role, exp }), {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
-    maxAge: SESSION_TTL_SECONDS,
+    maxAge: sessionTtlSeconds,
     path: '/',
   });
 }

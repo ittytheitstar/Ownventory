@@ -31,7 +31,7 @@ export function buildItemWhere(filters: ItemFilterInput): Prisma.ItemWhereInput 
     createdAt.lte = endOfDay;
   }
 
-  const estimatedValue: Prisma.DecimalFilter = {};
+  const estimatedValue: { gte?: Prisma.Decimal; lte?: Prisma.Decimal } = {};
   if (valueMin && !Number.isNaN(Number(valueMin))) {
     estimatedValue.gte = new Prisma.Decimal(valueMin);
   }

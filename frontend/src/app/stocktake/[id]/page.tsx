@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Camera, Loader2 } from 'lucide-react';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
@@ -21,7 +21,7 @@ export default function StocktakeSessionPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [error, setError] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [me, sessionData] = await Promise.all([
@@ -35,11 +35,11 @@ export default function StocktakeSessionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     load().catch(() => setError('Unable to load stock-taking session.'));
-  }, [id]);
+  }, [load]);
 
   const handleScan = async (value: string) => {
     setSubmitting(true);
