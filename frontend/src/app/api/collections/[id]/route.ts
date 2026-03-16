@@ -3,9 +3,10 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const collection = await prisma.collection.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       catalogue: true,
       items: {
@@ -18,7 +19,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   return NextResponse.json(collection);
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  await prisma.collection.delete({ where: { id: params.id } });
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await prisma.collection.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }

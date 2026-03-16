@@ -246,6 +246,7 @@ export default function HomePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="flex gap-4 p-4">
             {result.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={result.imageUrl}
                 alt={result.name}

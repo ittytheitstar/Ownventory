@@ -4,9 +4,10 @@ import { ItemStatus } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const item = await prisma.item.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       catalogue: true,
       collections: { include: { collection: { include: { catalogue: true } } } },
@@ -16,7 +17,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   return NextResponse.json(item);
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = await request.json();
   const allowed = [
     'name','description','status','notes','imageUrl','manufacturer',
@@ -30,14 +32,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
   }
   const item = await prisma.item.update({
-    where: { id: params.id },
+    where: { id },
     data: data as Parameters<typeof prisma.item.update>[0]['data'],
     include: { catalogue: true },
   });
   return NextResponse.json(item);
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  await prisma.item.delete({ where: { id: params.id } });
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await prisma.item.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }
