@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Trash2, Loader2, Edit2, Check, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Loader2, Edit2, Check, X, DollarSign, Camera, Upload } from 'lucide-react';
 import type { Item, ItemStatus } from '@/types';
 import { STATUS_LABELS } from '@/types';
 
@@ -17,6 +17,9 @@ export default function ItemDetailPage() {
   const [saving, setSaving] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState('');
+  const [fetchingPrice, setFetchingPrice] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch(`/api/items/${id}`)
@@ -60,6 +63,50 @@ export default function ItemDetailPage() {
     router.push('/library');
   };
 
+  const fetchPrice = async () => {
+    if (!item) return;
+    setFetchingPrice(true);
+    try {
+      const res = await fetch(`/api/items/${item.id}/price`, { method: 'POST' });
+      if (res.ok) {
+        const updated = await res.json();
+        setItem(updated);
+      } else {
+        alert('Price estimation unavailable. Set EBAY_APP_ID for richer data.');
+      }
+    } catch {
+      alert('Failed to fetch price.');
+    } finally {
+      setFetchingPrice(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!item) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        alert(err.error ?? 'Upload failed');
+        return;
+      }
+      const { url } = await uploadRes.json();
+      const patchRes = await fetch(`/api/items/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: url }),
+      });
+      if (patchRes.ok) setItem(await patchRes.json());
+    } catch {
+      alert('Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -94,6 +141,47 @@ export default function ItemDetailPage() {
         </div>
       )}
 
+      {/* Photo upload / capture */}
+      <div className="flex gap-2">
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handlePhotoUpload(file);
+            e.target.value = '';
+          }}
+        />
+        <button
+          onClick={() => {
+            if (photoInputRef.current) {
+              photoInputRef.current.removeAttribute('capture');
+              photoInputRef.current.click();
+            }
+          }}
+          disabled={uploadingImage}
+          className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          Upload photo
+        </button>
+        <button
+          onClick={() => {
+            if (photoInputRef.current) {
+              photoInputRef.current.setAttribute('capture', 'environment');
+              photoInputRef.current.click();
+            }
+          }}
+          disabled={uploadingImage}
+          className="flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+          Take photo
+        </button>
+      </div>
+
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <p className="text-sm font-medium text-gray-700 mb-3">Status</p>
         <div className="flex flex-wrap gap-2">
@@ -112,6 +200,44 @@ export default function ItemDetailPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-1">
+            <DollarSign className="h-4 w-4 text-green-500" /> Estimated Value
+          </h2>
+          <button
+            onClick={fetchPrice}
+            disabled={fetchingPrice}
+            className="text-xs text-indigo-600 font-medium disabled:opacity-50"
+          >
+            {fetchingPrice ? 'Fetching…' : 'Refresh'}
+          </button>
+        </div>
+        {item.estimatedValue ? (
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              ${parseFloat(item.estimatedValue).toFixed(2)}
+            </p>
+            {item.valueFetchedAt && (
+              <p className="text-xs text-gray-400 mt-1">
+                Last updated {new Date(item.valueFetchedAt).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">
+            No estimate yet —{' '}
+            <button
+              onClick={fetchPrice}
+              disabled={fetchingPrice}
+              className="text-indigo-600 underline underline-offset-2 disabled:opacity-50"
+            >
+              fetch now
+            </button>
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-3">

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Plus, FolderOpen, Loader2 } from 'lucide-react';
+import { Search, Plus, FolderOpen, Loader2, Camera } from 'lucide-react';
 import type { Catalogue, Collection } from '@/types';
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 
 interface LookupResultLocal {
   name: string;
@@ -23,6 +24,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<LookupResultLocal | null>(null);
   const [error, setError] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   const [catalogues, setCatalogues] = useState<Catalogue[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -36,6 +38,20 @@ export default function HomePage() {
     fetch('/api/catalogues').then((r) => r.json()).then(setCatalogues).catch(console.error);
     fetch('/api/collections').then((r) => r.json()).then(setCollections).catch(console.error);
   }, []);
+
+  const handleBarcodeScan = (value: string) => {
+    setShowScanner(false);
+    setQuery(value);
+    // Auto-trigger lookup
+    setLoading(true);
+    setError('');
+    setResult(null);
+    fetch(`/api/lookup?q=${encodeURIComponent(value.trim())}`)
+      .then((r) => r.json())
+      .then(setResult)
+      .catch(() => setError('Lookup failed. Please try again.'))
+      .finally(() => setLoading(false));
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,6 +243,14 @@ export default function HomePage() {
             />
           </div>
           <button
+            type="button"
+            onClick={() => setShowScanner(true)}
+            className="bg-white border border-gray-200 text-gray-600 px-4 py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+            aria-label="Open camera scanner"
+          >
+            <Camera className="h-5 w-5" />
+          </button>
+          <button
             type="submit"
             disabled={loading || !query.trim()}
             className="bg-indigo-600 text-white px-5 py-3 rounded-xl font-medium shadow-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors"
@@ -235,6 +259,13 @@ export default function HomePage() {
           </button>
         </div>
       </form>
+
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">

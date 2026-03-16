@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, FolderOpen, Search } from 'lucide-react';
+import { BookOpen, FolderOpen, Search, Upload } from 'lucide-react';
 
 const links = [
   { href: '/', label: 'Scan', icon: Search },
   { href: '/library', label: 'Library', icon: BookOpen },
   { href: '/collections', label: 'Collections', icon: FolderOpen },
+  { href: '/import', label: 'Import', icon: Upload },
 ];
 
 export function Navigation() {

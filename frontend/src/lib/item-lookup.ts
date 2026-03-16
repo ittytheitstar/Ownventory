@@ -94,7 +94,34 @@ async function lookupOpenFoodFacts(barcode: string): Promise<LookupResult | null
   }
 }
 
-/** Determine catalogue category from query keywords */
+/** Look up a book via Google Books API */
+async function lookupGoogleBooks(query: string): Promise<LookupResult | null> {
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=1`,
+      { next: { revalidate: 3600 } }
+    );
+    const data = await res.json();
+    if (!data.items?.length) return null;
+    const vol = data.items[0].volumeInfo;
+    const isbn = vol.industryIdentifiers?.find(
+      (id: { type: string; identifier: string }) => id.type === 'ISBN_13' || id.type === 'ISBN_10'
+    )?.identifier;
+    return {
+      name: vol.title ?? query,
+      author: vol.authors?.join(', '),
+      publisher: vol.publisher,
+      year: vol.publishedDate ? parseInt(vol.publishedDate.slice(0, 4)) : undefined,
+      imageUrl: vol.imageLinks?.thumbnail?.replace('http:', 'https:'),
+      catalogueName: 'Books',
+      metadata: { source: 'googlebooks', isbn },
+    };
+  } catch {
+    return null;
+  }
+}
+
+
 function guessCatalogue(query: string): string {
   const q = query.toLowerCase();
   if (/\b(game|xbox|playstation|nintendo|ps[2345]|switch)\b/.test(q)) return 'Video Games';
@@ -132,9 +159,12 @@ export async function lookupItem(query: string): Promise<LookupResult | null> {
     };
   }
 
-  // Text search – try Open Library, then guess catalogue
+  // Text search – try Open Library, then Google Books, then guess catalogue
   const bookResult = await searchOpenLibrary(trimmed);
   if (bookResult) return bookResult;
+
+  const googleResult = await lookupGoogleBooks(trimmed);
+  if (googleResult) return googleResult;
 
   return {
     name: trimmed,

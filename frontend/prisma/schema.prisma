@@ -40,24 +40,26 @@ model Collection {
 }
 
 model Item {
-  id           String           @id @default(cuid())
-  name         String
-  description  String?
-  barcode      String?
-  isbn         String?
-  catalogueId  String
-  catalogue    Catalogue        @relation(fields: [catalogueId], references: [id])
-  collections  CollectionItem[]
-  status       ItemStatus       @default(OWNED)
-  imageUrl     String?
-  manufacturer String?
-  author       String?
-  publisher    String?
-  year         Int?
-  metadata     Json?
-  notes        String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id             String           @id @default(cuid())
+  name           String
+  description    String?
+  barcode        String?
+  isbn           String?
+  catalogueId    String
+  catalogue      Catalogue        @relation(fields: [catalogueId], references: [id])
+  collections    CollectionItem[]
+  status         ItemStatus       @default(OWNED)
+  imageUrl       String?
+  manufacturer   String?
+  author         String?
+  publisher      String?
+  year           Int?
+  metadata       Json?
+  notes          String?
+  estimatedValue Decimal?         @db.Decimal(10, 2)
+  valueFetchedAt DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
 model CollectionItem {

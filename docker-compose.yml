@@ -26,9 +26,13 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-ownventory}:${POSTGRES_PASSWORD:-ownventory_secret}@db:5432/${POSTGRES_DB:-ownventory}
       NODE_ENV: production
+      EBAY_APP_ID: ${EBAY_APP_ID:-}
+    volumes:
+      - uploads-data:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   postgres-data:
+  uploads-data:
