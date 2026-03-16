@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ItemStatus {
+  OWNED
+  LOST
+  STOLEN
+  DAMAGED
+  DESTROYED
+}
+
+model Catalogue {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  icon        String?
+  items       Item[]
+  collections Collection[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Collection {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  catalogueId String
+  catalogue   Catalogue        @relation(fields: [catalogueId], references: [id])
+  items       CollectionItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([name, catalogueId])
+}
+
+model Item {
+  id           String           @id @default(cuid())
+  name         String
+  description  String?
+  barcode      String?
+  isbn         String?
+  catalogueId  String
+  catalogue    Catalogue        @relation(fields: [catalogueId], references: [id])
+  collections  CollectionItem[]
+  status       ItemStatus       @default(OWNED)
+  imageUrl     String?
+  manufacturer String?
+  author       String?
+  publisher    String?
+  year         Int?
+  metadata     Json?
+  notes        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  itemId       String
+  item         Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([itemId, collectionId])
+}
