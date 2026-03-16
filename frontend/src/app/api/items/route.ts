@@ -1,33 +1,35 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ItemStatus } from '@prisma/client';
+import { buildItemWhere } from '@/lib/item-filters';
+import { requireAuth, requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (auth.response) return auth.response;
+
   const { searchParams } = new URL(request.url);
   const catalogueId = searchParams.get('catalogueId');
   const collectionId = searchParams.get('collectionId');
-  const status = searchParams.get('status') as ItemStatus | null;
+  const status = searchParams.get('status');
   const q = searchParams.get('q');
+  const dateFrom = searchParams.get('dateFrom');
+  const dateTo = searchParams.get('dateTo');
+  const valueMin = searchParams.get('valueMin');
+  const valueMax = searchParams.get('valueMax');
 
   const items = await prisma.item.findMany({
-    where: {
-      ...(catalogueId ? { catalogueId } : {}),
-      ...(status ? { status } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { description: { contains: q, mode: 'insensitive' } },
-              { barcode: { contains: q, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-      ...(collectionId
-        ? { collections: { some: { collectionId } } }
-        : {}),
-    },
+    where: buildItemWhere({
+      catalogueId,
+      collectionId,
+      status,
+      q,
+      dateFrom,
+      dateTo,
+      valueMin,
+      valueMax,
+    }),
     orderBy: { createdAt: 'desc' },
     include: {
       catalogue: { select: { id: true, name: true, icon: true } },
@@ -40,6 +42,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const body = await request.json();
   const {
     name,

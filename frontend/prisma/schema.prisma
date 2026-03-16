@@ -15,6 +15,11 @@ enum ItemStatus {
   DESTROYED
 }
 
+enum UserRole {
+  OWNER
+  VIEWER
+}
+
 model Catalogue {
   id          String       @id @default(cuid())
   name        String       @unique
@@ -22,6 +27,7 @@ model Catalogue {
   icon        String?
   items       Item[]
   collections Collection[]
+  stocktakeSessions StocktakeSession[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -33,6 +39,7 @@ model Collection {
   catalogueId String
   catalogue   Catalogue        @relation(fields: [catalogueId], references: [id])
   items       CollectionItem[]
+  stocktakeSessions StocktakeSession[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
@@ -58,6 +65,7 @@ model Item {
   notes          String?
   estimatedValue Decimal?         @db.Decimal(10, 2)
   valueFetchedAt DateTime?
+  stocktakeItems StocktakeItem[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
@@ -71,4 +79,60 @@ model CollectionItem {
   createdAt    DateTime   @default(now())
 
   @@unique([itemId, collectionId])
+}
+
+model User {
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  passwordHash      String
+  role              UserRole           @default(VIEWER)
+  stocktakeSessions StocktakeSession[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model StocktakeSession {
+  id          String          @id @default(cuid())
+  name        String
+  catalogueId String?
+  collectionId String?
+  createdById String
+  catalogue   Catalogue?      @relation(fields: [catalogueId], references: [id])
+  collection  Collection?     @relation(fields: [collectionId], references: [id])
+  createdBy   User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  items       StocktakeItem[]
+  notes       String?
+  startedAt   DateTime        @default(now())
+  endedAt     DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model StocktakeItem {
+  id         String           @id @default(cuid())
+  sessionId  String
+  itemId     String?
+  label      String
+  scanValue  String?
+  expected   Boolean          @default(false)
+  scannedAt  DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  session    StocktakeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  item       Item?            @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, expected])
+  @@index([sessionId, scannedAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  name      String
+  format    String
+  scopeType String
+  scopeId   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Trash2, Loader2, Edit2, Check, X, DollarSign, Camera, Upload } from 'lucide-react';
 import type { Item, ItemStatus } from '@/types';
@@ -250,6 +251,12 @@ export default function ItemDetailPage() {
         {item.barcode && <Detail label="Barcode" value={item.barcode} />}
         {item.isbn && <Detail label="ISBN" value={item.isbn} />}
         {item.description && <Detail label="Description" value={item.description} />}
+        <Link
+          href={`/items/${item.id}/label`}
+          className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Print QR label
+        </Link>
         {item.collections && item.collections.length > 0 && (
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Collections</p>

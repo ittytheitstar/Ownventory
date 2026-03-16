@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Search, Plus, FolderOpen, Loader2, Camera } from 'lucide-react';
 import type { Catalogue, Collection } from '@/types';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
@@ -342,6 +343,21 @@ export default function HomePage() {
             <p className="text-xs text-gray-400">{cat._count?.items ?? 0} items</p>
           </a>
         ))}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <Link href="/stocktake" className="rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm">
+          <p className="text-lg">✅</p>
+          <p className="mt-1 text-sm font-medium text-gray-900">Stocktake</p>
+        </Link>
+        <Link href="/reports" className="rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm">
+          <p className="text-lg">📄</p>
+          <p className="mt-1 text-sm font-medium text-gray-900">Reports</p>
+        </Link>
+        <Link href="/account" className="rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm">
+          <p className="text-lg">👤</p>
+          <p className="mt-1 text-sm font-medium text-gray-900">Account</p>
+        </Link>
       </div>
     </div>
   );

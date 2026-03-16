@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import sharp from 'sharp';
+import { requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,9 @@ const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export async function POST(request: Request) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

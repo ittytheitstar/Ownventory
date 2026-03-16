@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, requireOwner } from '@/lib/route-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (auth.response) return auth.response;
+
   const { searchParams } = new URL(request.url);
   const catalogueId = searchParams.get('catalogueId');
 
@@ -19,6 +23,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireOwner();
+  if (auth.response) return auth.response;
+
   const body = await request.json();
   const { name, description, catalogueId } = body;
 
